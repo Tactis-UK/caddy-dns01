@@ -7,7 +7,7 @@ RUN xcaddy build \
 --with github.com/caddy-dns/cloudflare \
 --with github.com/caddy-dns/azure
 
-FROM dhi.io/caddy:2.11.3
+FROM dhi.io/caddy:2.11.3-dev
 COPY --from=builder /build/caddy /usr/local/bin/caddy
 
 # Set Caddy working directory for easy reload command

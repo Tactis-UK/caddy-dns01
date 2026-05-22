@@ -1,0 +1,18 @@
+version: "3"
+services:
+  caddy: 
+    container_name: caddy
+    image: tactis/caddy-dns01:latest
+    restart: unless-stopped
+    environment:
+      CF_API_TOKEN: ${CF_API_TOKEN}
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - caddy_data:/data
+      - /etc/caddy/Caddyfile:/etc/caddy/Caddyfile
+volumes:
+  caddy_data:
+    driver: local
+    name: caddy_data

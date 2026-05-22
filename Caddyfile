@@ -1,0 +1,82 @@
+# The Caddyfile is an easy way to configure your Caddy web server.
+#
+# Unless the file starts with a global options block, the first
+# uncommented line is always the address of your site.
+#
+# To use your own domain name (with automatic HTTPS), first make
+# sure your domain's A/AAAA DNS records are properly pointed to
+# this machine's public IP, then replace ":80" below with your
+# domain name.
+
+{
+        email user@example.com
+        # Enable this to test using LetsEncrypt Staging
+        #acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+(dns-conf) {
+        dns cloudflare {env.CF_API_TOKEN}
+        disable_http_challenge
+        disable_tlsalpn_challenge
+        resolvers 1.1.1.1:53
+}                                                                                  
+(tls-cloudflare) {
+        tls {                
+                issuer zerossl {
+                        import dns-conf
+                }
+                issuer acme {
+                        import dns-conf
+                }
+        }
+}
+(tls-azure) {
+        tls {
+                dns azure {
+                        subscription_id {$AZURE_SUBSCRIPTION_ID}
+                        resource_group_name {$AZURE_RESOURCE_GROUP_NAME}
+                        tenant_id {$AZURE_TENANT_ID}
+                        client_id {$AZURE_CLIENT_ID}
+                        client_secret {$AZURE_CLIENT_SECRET}
+                }
+        }
+}
+
+
+example.com {
+        import tls
+        # Set this path to your site's directory.
+        root * /usr/share/caddy
+
+        # Enable the static file server.
+        file_server
+
+        # Another common task is to set up a reverse proxy:
+        # reverse_proxy localhost:8080
+
+        # Or serve a PHP site through php-fpm:
+        # php_fastcgi localhost:9000
+}
+
+reverse-proxy.example.com {
+        import tls
+        reverse_proxy webserver:80
+}
+
+ip.example.com {
+        import tls
+        respond {http.request.remote.host}
+}
+
+# when the backend is TLS but self-signed
+tls.example.uk {
+        import tls
+        reverse_proxy https://172.17.0.1:8443 {
+                transport http {
+                        tls_insecure_skip_verify
+                }
+        }
+}
+
+# Refer to the Caddy docs for more information:
+# https://caddyserver.com/docs/caddyfile
